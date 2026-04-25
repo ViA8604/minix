@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.11.26)  18 APR 2026 02:18
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.11.26)  25 APR 2026 02:16
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -285,26 +285,26 @@ LaTeX Info: Redefining \% on input line 11.
 )
 \openout1 = `Informe_del_Proyecto_de_Sistemas_Operativos.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 122.
-LaTeX Font Info:    ... okay on input line 122.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 122.
-LaTeX Font Info:    ... okay on input line 122.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 122.
-LaTeX Font Info:    ... okay on input line 122.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 122.
-LaTeX Font Info:    ... okay on input line 122.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 122.
-LaTeX Font Info:    ... okay on input line 122.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 122.
-LaTeX Font Info:    ... okay on input line 122.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 122.
-LaTeX Font Info:    ... okay on input line 122.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 122.
-LaTeX Font Info:    ... okay on input line 122.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 122.
-LaTeX Font Info:    ... okay on input line 122.
-LaTeX Info: Redefining \. on input line 122.
-LaTeX Info: Redefining \% on input line 122.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 123.
+LaTeX Font Info:    ... okay on input line 123.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 123.
+LaTeX Font Info:    ... okay on input line 123.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 123.
+LaTeX Font Info:    ... okay on input line 123.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 123.
+LaTeX Font Info:    ... okay on input line 123.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 123.
+LaTeX Font Info:    ... okay on input line 123.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 123.
+LaTeX Font Info:    ... okay on input line 123.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 123.
+LaTeX Font Info:    ... okay on input line 123.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 123.
+LaTeX Font Info:    ... okay on input line 123.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 123.
+LaTeX Font Info:    ... okay on input line 123.
+LaTeX Info: Redefining \. on input line 123.
+LaTeX Info: Redefining \% on input line 123.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -330,7 +330,7 @@ LaTeX Info: Redefining \% on input line 122.
 * \marginparwidth=44.0pt
 * \marginparsep=10.0pt
 * \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \skip\footins=15.0pt
 * \hoffset=0.0pt
 * \voffset=0.0pt
 * \mag=1000
@@ -360,7 +360,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 48
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
 \c@lstlisting=\count299
-Package hyperref Info: Link coloring OFF on input line 122.
+Package hyperref Info: Link coloring OFF on input line 123.
  (./Informe_del_Proyecto_de_Sistemas_Operativos.out) (./Informe_del_Proyecto_de_Sistemas_Operativos.out)
 \@outlinefile=\write3
 \openout3 = `Informe_del_Proyecto_de_Sistemas_Operativos.out'.
@@ -368,54 +368,159 @@ Package hyperref Info: Link coloring OFF on input line 122.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: End \AtBeginDocument code.
-<matcom-logo.jpg, id=20, 481.8pt x 481.8pt>
+<matcom-logo.jpg, id=36, 481.8pt x 481.8pt>
 File: matcom-logo.jpg Graphic file (type jpg)
 <use matcom-logo.jpg>
-Package pdftex.def Info: matcom-logo.jpg  used on input line 124.
+Package pdftex.def Info: matcom-logo.jpg  used on input line 125.
 (pdftex.def)             Requested size: 80.24443pt x 80.24344pt.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 124.
+(Font)              <12> on input line 125.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 124.
+(Font)              <8> on input line 125.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 124.
+(Font)              <6> on input line 125.
 
-Underfull \hbox (badness 10000) in paragraph at lines 124--124
+Underfull \hbox (badness 10000) in paragraph at lines 125--125
 [][]
  []
 
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./matcom-logo.jpg>]
-LaTeX Info: Redefining \. on input line 150.
-LaTeX Info: Redefining \% on input line 150.
+LaTeX Info: Redefining \. on input line 151.
+LaTeX Info: Redefining \% on input line 151.
 
 pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.150     \item \textbf
+l.151     \item \textbf
                        {Disco duro:} 2 GB (reserva dinámica) [1]
-<ISO_VM_eliminado.png, id=32, 832.10875pt x 571.13374pt>
+<ISO_VM_eliminado.png, id=48, 832.10875pt x 571.13374pt>
 File: ISO_VM_eliminado.png Graphic file (type png)
 <use ISO_VM_eliminado.png>
-Package pdftex.def Info: ISO_VM_eliminado.png  used on input line 159.
+Package pdftex.def Info: ISO_VM_eliminado.png  used on input line 160.
 (pdftex.def)             Requested size: 387.06906pt x 265.6703pt.
-LaTeX Info: Redefining \. on input line 172.
-LaTeX Info: Redefining \% on input line 172.
+LaTeX Info: Redefining \. on input line 173.
+LaTeX Info: Redefining \% on input line 173.
  [2 <./ISO_VM_eliminado.png>]
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 183.
-LaTeX Info: Redefining \. on input line 205.
-LaTeX Info: Redefining \% on input line 205.
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 184.
+LaTeX Info: Redefining \. on input line 206.
+LaTeX Info: Redefining \% on input line 206.
  [3]
-<MOTD_modificado.png, id=49, 750.805pt x 515.9275pt>
+<MOTD_modificado.png, id=65, 750.805pt x 515.9275pt>
 File: MOTD_modificado.png Graphic file (type png)
 <use MOTD_modificado.png>
-Package pdftex.def Info: MOTD_modificado.png  used on input line 211.
+Package pdftex.def Info: MOTD_modificado.png  used on input line 212.
 (pdftex.def)             Requested size: 424.82523pt x 291.93256pt.
-LaTeX Info: Redefining \. on input line 216.
-LaTeX Info: Redefining \% on input line 216.
- [4 <./MOTD_modificado.png>] (./Informe_del_Proyecto_de_Sistemas_Operativos.aux
+<Comp_Rep.png, id=66, 837.1275pt x 263.98625pt>
+File: Comp_Rep.png Graphic file (type png)
+<use Comp_Rep.png>
+Package pdftex.def Info: Comp_Rep.png  used on input line 225.
+(pdftex.def)             Requested size: 330.42041pt x 104.19487pt.
+LaTeX Info: Redefining \. on input line 228.
+LaTeX Info: Redefining \% on input line 228.
+ [4 <./MOTD_modificado.png>]
+<Bug_Block.png, id=75, 869.2475pt x 631.35875pt>
+File: Bug_Block.png Graphic file (type png)
+<use Bug_Block.png>
+Package pdftex.def Info: Bug_Block.png  used on input line 238.
+(pdftex.def)             Requested size: 424.82523pt x 308.5689pt.
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 239.
+See the caption package documentation for explanation.
+
+LaTeX Info: Redefining \. on input line 245.
+LaTeX Info: Redefining \% on input line 245.
+[5 <./Comp_Rep.png> <./Bug_Block.png>]
+<Bug_Rep.png, id=85, 1714.405pt x 737.75626pt>
+File: Bug_Rep.png Graphic file (type png)
+<use Bug_Rep.png>
+Package pdftex.def Info: Bug_Rep.png  used on input line 253.
+(pdftex.def)             Requested size: 472.03123pt x 203.12563pt.
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 254.
+See the caption package documentation for explanation.
+
+<Error_12.png, id=86, 819.06pt x 250.9375pt>
+File: Error_12.png Graphic file (type png)
+<use Error_12.png>
+Package pdftex.def Info: Error_12.png  used on input line 258.
+(pdftex.def)             Requested size: 424.82523pt x 130.15895pt.
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 259.
+See the caption package documentation for explanation.
+
+LaTeX Info: Redefining \. on input line 266.
+LaTeX Info: Redefining \% on input line 266.
+[6 <./Bug_Rep.png> <./Error_12.png>]
+<Trylock_Fixed.png, id=98, 1694.33pt x 521.95pt>
+File: Trylock_Fixed.png Graphic file (type png)
+<use Trylock_Fixed.png>
+Package pdftex.def Info: Trylock_Fixed.png  used on input line 275.
+(pdftex.def)             Requested size: 472.03123pt x 145.41228pt.
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 276.
+See the caption package documentation for explanation.
+
+LaTeX Info: Redefining \. on input line 285.
+LaTeX Info: Redefining \% on input line 285.
+[7 <./Trylock_Fixed.png>]
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 285.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 285.
+<make_clean_all.png, id=109, 869.2475pt x 631.35875pt>
+File: make_clean_all.png Graphic file (type png)
+<use make_clean_all.png>
+Package pdftex.def Info: make_clean_all.png  used on input line 294.
+(pdftex.def)             Requested size: 226.57297pt x 164.56364pt.
+<make_install.png, id=110, 869.2475pt x 631.35875pt>
+File: make_install.png Graphic file (type png)
+<use make_install.png>
+Package pdftex.def Info: make_install.png  used on input line 299.
+(pdftex.def)             Requested size: 226.57297pt x 164.56364pt.
+<test_bug_passed.png, id=111, 869.2475pt x 631.35875pt>
+File: test_bug_passed.png Graphic file (type png)
+<use test_bug_passed.png>
+Package pdftex.def Info: test_bug_passed.png  used on input line 307.
+(pdftex.def)             Requested size: 283.22162pt x 205.70938pt.
+LaTeX Info: Redefining \. on input line 319.
+LaTeX Info: Redefining \% on input line 319.
+ [8 <./make_clean_all.png> <./make_install.png> <./test_bug_passed.png>]
+LaTeX Info: Redefining \. on input line 358.
+LaTeX Info: Redefining \% on input line 358.
+ [9]
+<Deepseek_SSH.png, id=135, 970.62625pt x 393.47pt>
+File: Deepseek_SSH.png Graphic file (type png)
+<use Deepseek_SSH.png>
+Package pdftex.def Info: Deepseek_SSH.png  used on input line 364.
+(pdftex.def)             Requested size: 283.22162pt x 114.81183pt.
+<SF_Config.png, id=136, 347.2975pt x 308.15125pt>
+File: SF_Config.png Graphic file (type png)
+<use SF_Config.png>
+Package pdftex.def Info: SF_Config.png  used on input line 369.
+(pdftex.def)             Requested size: 141.61081pt x 125.65163pt.
+
+Underfull \hbox (badness 1389) in paragraph at lines 370--370
+[]|\OT1/cmr/m/n/12 Con-fi-gu-ra-ci^^Son de Car-pe-ta
+ []
+
+<SF_Mounted.png, id=137, 814.04124pt x 264.99pt>
+File: SF_Mounted.png Graphic file (type png)
+<use SF_Mounted.png>
+Package pdftex.def Info: SF_Mounted.png  used on input line 377.
+(pdftex.def)             Requested size: 292.65706pt x 95.26694pt.
+LaTeX Info: Redefining \. on input line 385.
+LaTeX Info: Redefining \% on input line 385.
+[10 <./Deepseek_SSH.png> <./SF_Config.png> <./SF_Mounted.png>] (./Informe_del_Proyecto_de_Sistemas_Operativos.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -424,21 +529,21 @@ LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `Informe_del_Proyecto_de_Sistemas_Operativos.out' has not changed.
-(rerunfilecheck)             Checksum: BD906FE7A6CE93FD8C57CB3DA13C124F;954.
+(rerunfilecheck)             Checksum: 30AFBE6DA9C532D6142B2416E43DF0C3;1596.
  ) 
 Here is how much of TeX's memory you used:
- 14048 strings out of 476047
- 224546 string characters out of 5792074
+ 14166 strings out of 476047
+ 226676 string characters out of 5792074
  1932975 words of memory out of 5000000
- 35913 multiletter control sequences out of 15000+600000
- 563098 words of font info for 53 fonts, out of 8000000 for 9000
+ 36002 multiletter control sequences out of 15000+600000
+ 563613 words of font info for 55 fonts, out of 8000000 for 9000
  85 hyphenation exceptions out of 8191
  75i,12n,79p,632b,602s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on Informe_del_Proyecto_de_Sistemas_Operativos.pdf (5 pages, 159542 bytes).
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
+Output written on Informe_del_Proyecto_de_Sistemas_Operativos.pdf (11 pages, 750358 bytes).
 PDF statistics:
- 82 PDF objects out of 1000 (max. 8388607)
- 61 compressed objects within 1 object stream
- 17 named destinations out of 1000 (max. 500000)
- 48 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 201 PDF objects out of 1000 (max. 8388607)
+ 141 compressed objects within 2 object streams
+ 44 named destinations out of 1000 (max. 500000)
+ 135 words of extra memory for PDF output out of 10000 (max. 10000000)
 
