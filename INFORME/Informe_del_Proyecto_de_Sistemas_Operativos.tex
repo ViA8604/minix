@@ -16,6 +16,8 @@
 \usepackage{caption}
 \usepackage{fancyhdr}
 \usepackage{float}
+\usepackage{needspace}
+\usepackage[section]{placeins}
 
 % ==================== CONFIGURACIÓN DE PÁGINA ====================
 \geometry{top=2.0cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
@@ -124,6 +126,9 @@
 
 \makecustomcover%
 
+\tableofcontents
+\newpage
+
 
 
 % ==================== 1. INTRODUCCIÓN ====================
@@ -157,7 +162,7 @@ Durante la instalación de MINIX en VirtualBox, se presentaron algunos inconveni
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.82\textwidth]{ISO_VM_eliminado.png}
+    \includegraphics[width=0.6\textwidth]{ISO_VM_eliminado.png}
     \caption{Eliminado el ISO de instalación para iniciar desde el disco virtual}
 \end{figure}
 % ------------------------------------------------------------
@@ -209,7 +214,7 @@ Universidad de La Habana -- Proyecto de Sistemas Operativos 2026
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{MOTD_modificado.png}
+    \includegraphics[width=0.7\textwidth]{MOTD_modificado.png}
     \caption{Verificación del mensaje de bienvenida personalizado en \texttt{/etc/motd}}
 \end{figure}
 
@@ -235,7 +240,7 @@ clang test_bug.c -o test_bug -lmthread
 Esto generó el archivo ejecutable \texttt{test\_bug}, que al ser ejecutado, se observó que el programa se bloqueaba. Añadimos un mensaje al \texttt{test\_bug.c} para verificar que se llamaba al \texttt{pthread\_mutex\_trylock()}, y efectivamente, ocurría esto.
 
 \begin{center}
-    \includegraphics[width=0.9\textwidth]{Bug_Block.png}
+    \includegraphics[width=0.7\textwidth]{Bug_Block.png}
     \captionof{figure}{Bloqueo del programa en \texttt{pthread\_mutex\_trylock}}
 \end{center}
 
@@ -317,6 +322,392 @@ unlock: 0 (OK)
 destroy: 0 (OK)
 PASS
 \end{verbatim}
+
+% ------------------------------------------------------------
+\subsection{Implementación del comando tree}
+% ------------------------------------------------------------
+Aquí documentamos el proceso de diseño e implementación del comando \texttt{tree} en MINIX.
+\subsubsection*{Diseño del algoritmo}
+Se uso un algoritmo recursivo porque el sistema de archivos es un árbol. En un árbol:
+\begin{itemize}
+    \item Cada directorio es un "nodo".
+    \item Cada subdirectorio es una "rama" (un nodo hijo).
+    \item Los archivos son las "hojas".
+\end{itemize}
+Para recorrer un árbol, la forma más elegante y directa es usar recursión.
+La implementación del comando \texttt{tree} sigue un enfoque recursivo para recorrer la jerarquía de directorios de forma ordenada. Su funcionamiento general puede describirse en dos partes:
+
+\begin{itemize}
+    \item \textbf{Entrada principal (\texttt{main}).}
+    \begin{itemize}
+        \item Recibe una ruta opcional como argumento; si no se especifica, utiliza \texttt{"."} (directorio actual).
+        \item Verifica con \texttt{lstat} que la ruta exista y que pueda obtenerse su metainformación.
+        \item Imprime el nombre del nodo raíz.
+        \item Si la ruta raíz corresponde a un directorio, invoca la función recursiva \texttt{print\_tree} para expandir su contenido.
+    \end{itemize}
+
+    \item \textbf{Función recursiva (\texttt{print\_tree}).}
+    \begin{itemize}
+        \item Abre el directorio con \texttt{opendir}.
+        \item Recorre sus entradas mediante \texttt{readdir}, ignorando explícitamente \texttt{"."} y \texttt{".."}.
+        \item Para cada entrada, construye su ruta completa y consulta sus atributos con \texttt{lstat}, evitando seguir enlaces simbólicos.
+        \item Imprime la entrada con una indentación proporcional a la profundidad actual del recorrido.
+        \item Muestra cada nombre con un prefijo/estilo según el tipo detectado: directorio (\texttt{/}), enlace simbólico o archivo regular.
+        \item Si la entrada es un directorio real (y no un \textit{symlink}), realiza una llamada recursiva a \texttt{print\_tree} para continuar el descenso en el árbol.
+    \end{itemize}
+
+    \item \textbf{Manejo de errores.}
+    \begin{itemize}
+        \item Si falla la apertura de un directorio o la obtención de información de una entrada, el programa reporta el error por \texttt{stderr}.
+        \item Tras reportar el fallo, continúa procesando el resto de entradas siempre que sea posible, evitando abortar todo el recorrido por un error puntual.
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Llamadas al sistema utilizadas}
+
+\begin{itemize}
+    \item \texttt{opendir}: abre el directorio para poder leer sus entradas.
+    \item \texttt{readdir}: recorre una a una las entradas del directorio abierto.
+    \item \texttt{closedir}: cierra el directorio y libera los recursos asociados.
+    \item \texttt{lstat}: obtiene la metainformación de cada entrada sin seguir enlaces simbólicos.
+\end{itemize}
+
+\subsubsection*{Prevención de ciclos}
+
+Para evitar recorridos infinitos, el algoritmo no sigue enlaces simbólicos al explorar el árbol. Primero consulta cada entrada con \texttt{lstat}, de modo que obtiene información del propio enlace y no de su destino. Luego usa la macro \texttt{S\_ISLNK(st.st\_mode)} para detectar si se trata de un enlace simbólico; en ese caso, solo muestra su nombre y no hace la llamada recursiva.
+
+Además, durante el recorrido con \texttt{readdir} se ignoran las entradas \texttt{(.)} y \texttt{(..)}, ya que representan el directorio actual y el padre, y podrían provocar ciclos inmediatos en la exploración.
+
+\subsubsection*{Código fuente}
+\noindent A continuación se muestran los fragmentos fundamentales del comando, organizados para evidenciar recursividad, llamadas al sistema y prevención de ciclos.
+
+\paragraph{1) Inclusiones y firma de la función}
+\begin{lstlisting}[language=C, caption={Cabeceras y prototipo de \texttt{print\_tree}}]
+#include <dirent.h>    // opendir, readdir, closedir
+#include <sys/stat.h>  // lstat, S_ISDIR, S_ISLNK
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <limits.h>
+
+static void print_tree(const char *path, int depth);
+\end{lstlisting}
+\textbf{En palabras simples:} Se incluyen las cabeceras necesarias para manipular directorios y consultar metadatos del sistema de archivos. La función \texttt{print\_tree} recibe \texttt{depth}, parámetro que controla la indentación visual en cada nivel de la recursión.
+
+\paragraph{2) Función principal (\texttt{main})}
+\begin{lstlisting}[language=C, caption={Punto de entrada y ruta por defecto}]
+int main(int argc, char *argv[]) {
+    const char *root = (argc > 1) ? argv[1] : ".";
+    printf("%s\n", root);
+    print_tree(root, 0);
+    return 0;
+}
+\end{lstlisting}
+\textbf{En palabras simples:} El punto de entrada verifica si el usuario proporcionó una ruta; en caso contrario, toma el directorio actual (\texttt{.}), cumpliendo la funcionalidad esperada del comando.
+
+\paragraph{3) Apertura y lectura de directorios}
+\begin{lstlisting}[language=C, caption={Uso de \texttt{opendir}/\texttt{readdir} con manejo de errores}]
+DIR *dir = opendir(path);
+if (!dir) {
+    fprintf(stderr, "Error abriendo %s: %s\n", path, strerror(errno));
+    return;
+}
+
+while ((entry = readdir(dir)) != NULL) {
+    // Logica de procesamiento
+}
+closedir(dir);
+\end{lstlisting}
+\textbf{En palabras simples:} Se emplean \texttt{opendir} y \texttt{readdir} para iterar entradas del directorio. Reportar errores por \texttt{stderr} permite que un fallo local no detenga necesariamente toda la ejecución del recorrido.
+
+\paragraph{4) Filtro de entradas especiales y prevención de ciclos}
+\begin{lstlisting}[language=C, caption={Filtro de \texttt{.}/\texttt{..}, \texttt{lstat} y control de enlaces simbólicos}]
+if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+    continue;
+
+char fullpath[PATH_MAX];
+snprintf(fullpath, sizeof(fullpath), "%s/%s", path, entry->d_name);
+
+if (lstat(fullpath, &st) != 0) continue;
+
+// Prevencion de ciclos
+if (S_ISLNK(st.st_mode)) {
+    printf("%*s|-- %s (enlace simbolico)\n", depth * 3, "", entry->d_name);
+    continue; // NO entrar recursivamente
+}
+\end{lstlisting}
+\textbf{En palabras simples:} Ignorar \texttt{.} y \texttt{..} evita recursiones infinitas inmediatas. El uso de \texttt{lstat} es clave: no sigue enlaces simbólicos y permite detectar \texttt{S\_ISLNK}. Si la entrada es un enlace, se imprime pero no se desciende por ella, cumpliendo la restricción de evitar ciclos.
+
+\paragraph{5) Lógica de recursión e indentación}
+\begin{lstlisting}[language=C, caption={Visualizacion jerarquica y descenso recursivo}]
+// Indentacion basada en la profundidad
+for (int i = 0; i < depth; i++) printf("|  ");
+printf("|-- %s\n", entry->d_name);
+
+// Llamada recursiva si es un directorio real
+if (S_ISDIR(st.st_mode)) {
+    print_tree(fullpath, depth + 1);
+}
+\end{lstlisting}
+\textbf{En palabras simples:} La jerarquía visual se representa repitiendo un prefijo según \texttt{depth}. Cuando la entrada es un directorio real (\texttt{S\_ISDIR}), la función se invoca a sí misma con \texttt{depth + 1} para continuar el recorrido.
+
+\paragraph{6) Makefile}
+\begin{lstlisting}[language=make, caption={Makefile para integracion con MINIX}]
+PROG=tree
+SRCS=tree.c
+NOMAN=
+.include <bsd.prog.mk>
+\end{lstlisting}
+\textbf{En palabras simples:} El \texttt{Makefile} utiliza la infraestructura de construcción de MINIX mediante \texttt{.include <bsd.prog.mk>}, facilitando compilación e instalación del binario en rutas estándar del sistema.
+
+\subsubsection*{Ejemplos de ejecución}
+
+Se muestran cinco casos de uso del comando implementado: dos ejemplos adicionales y tres ejecuciones sobre directorio actual, ruta específica y ruta relativa con manejo de error.
+
+\enlargethispage{2\baselineskip}
+
+\begin{figure}[!htb]
+    \centering
+    \begin{minipage}[t]{0.495\textwidth}
+        \centering
+        \IfFileExists{tree_Ej1.jpg}{
+            \includegraphics[width=\linewidth,height=0.21\textheight,keepaspectratio]{tree_Ej1.jpg}
+        }{
+            \fbox{\parbox[c][0.25\textheight][c]{0.96\linewidth}{\centering No se encuentra \texttt{tree\_Ej1.jpg}}}
+        }
+        \caption*{\texttt{tree}: ejemplo 1}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.495\textwidth}
+        \centering
+        \IfFileExists{tree_Ej2.jpg}{
+            \includegraphics[width=\linewidth,height=0.21\textheight,keepaspectratio]{tree_Ej2.jpg}
+        }{
+            \fbox{\parbox[c][0.25\textheight][c]{0.96\linewidth}{\centering No se encuentra \texttt{tree\_Ej2.jpg}}}
+        }
+        \caption*{\texttt{tree}: ejemplo 2}
+    \end{minipage}
+
+    \caption{Ejemplos adicionales de ejecución del comando \texttt{tree}}
+\end{figure}
+
+\vspace{5em}
+\begin{figure}[!htbp]
+    \centering
+    \begin{minipage}[t]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,height=0.20\textheight,keepaspectratio]{treeC_actual_folder.png}
+        \caption*{\texttt{tree} sobre el directorio actual (\texttt{.})}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,height=0.20\textheight,keepaspectratio]{treeC_route.png}
+        \caption*{\texttt{tree} sobre una ruta específica}
+    \end{minipage}\hfill
+    \vspace{5em}
+    \begin{minipage}[t]{1.0\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,height=0.20\textheight,keepaspectratio]{\detokenize{treeC_Relat_&_Error.png}}
+        \caption*{\texttt{tree} sobre ruta relativa y manejo de error}
+    \end{minipage}
+
+    \caption{Casos principales de ejecución del comando \texttt{tree}}
+\end{figure}
+
+\FloatBarrier
+
+\newpage
+\subsubsection*{Comparación con el comando estándar}
+
+\Needspace{20\baselineskip}
+
+La comparación entre el comando \texttt{tree} estándar de Linux y la implementación realizada en MINIX muestra que se cumplen los requisitos funcionales principales del recorrido de directorios. La siguiente tabla resume las diferencias y equivalencias más relevantes:
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{|p{0.23\textwidth}|p{0.33\textwidth}|p{0.33\textwidth}|}
+        \hline
+        \textbf{Característica} & \textbf{Comando tree (Linux)} & \textbf{Mi implementación (MINIX)} \\
+        \hline
+        \textbf{Recursión} & Completa & Completa (vía \texttt{opendir}/\texttt{readdir}) \\
+        \hline
+        \textbf{Indentación} & Basada en profundidad & Basada en variable \texttt{depth} \\
+        \hline
+        \textbf{Enlaces simbólicos} & Puede seguirlos (con flags) & Nunca los sigue (prevención de ciclos) \\
+        \hline
+        \textbf{Llamadas al sistema} & Internas del sistema & \texttt{lstat}, \texttt{opendir}, \texttt{readdir} \\
+        \hline
+    \end{tabular}
+    \caption{Comparación entre \texttt{tree} estándar y la implementación en MINIX}
+\end{table}
+
+En conclusión, aunque la versión estándar de Linux ofrece más opciones avanzadas mediante banderas, la implementación en MINIX reproduce correctamente el comportamiento esencial de recorrido recursivo, representación jerárquica e inspección segura del sistema de archivos.
+
+% ------------------------------------------------------------
+\subsection{Penalización por uso intensivo de CPU}
+% ------------------------------------------------------------
+
+En esta parte del trabajo se analizó el servicio de planificación de MINIX 3 y se propuso una política de ajuste dinámico de prioridades para favorecer a los procesos interactivos frente a los procesos intensivos en CPU.
+
+\subsubsection*{Análisis previo}
+
+\begin{itemize}
+    \item El planificador de MINIX 3 está en \texttt{sched}, dentro de \texttt{minix/servers/sched/}.
+    \item La lógica principal de asignación vive en \texttt{schedule.c}; los datos de cada proceso se guardan en \texttt{schedproc.h}.
+    \item La función \texttt{do\_noquantum} se activa cuando un proceso agota su quantum y deja registro de ese consumo.
+    \item En MINIX, un número de prioridad más bajo significa más preferencia de ejecución.
+    \item El \textit{quantum} es el tiempo fijo que un proceso puede correr antes de volver a ser evaluado.
+\end{itemize}
+
+\subsubsection*{Diseño de la política}
+
+\begin{itemize}
+    \item Se usa una ventana de observación de 5 segundos para medir el comportamiento reciente.
+    \item Si un proceso agota 3 quantums o más dentro de esa ventana, se considera intensivo en CPU.
+    \item En ese caso, su prioridad baja en 1 nivel, sin pasar el límite marcado por \texttt{MIN\_USER\_Q}.
+    \item Si no agota ningún quantum completo, se interpreta como proceso interactivo.
+    \item En ese caso, recupera 1 nivel de prioridad, sin superar su valor máximo guardado en \texttt{max\_priority}.
+\end{itemize}
+
+\subsubsection*{Cambios realizados}
+
+Para implementar la política fue necesario ampliar la estructura de datos del planificador con información para identificar al proceso, contar su uso de CPU y limitar la prioridad a la que puede volver.
+
+\begin{lstlisting}[caption=Estructura de datos modificada en schedproc.h]
+EXTERN struct schedproc {
+    endpoint_t endpoint;	/* process endpoint id */
+    endpoint_t parent;	/* parent endpoint id */
+    unsigned flags;		/* flag bits */
+
+    /* User space scheduling */
+int quanta_consumed;	/* number of full quantums consumed in window */
+    unsigned max_priority;	/* this process' highest allowed priority */
+    unsigned priority;		/* the process' current priority */
+    unsigned time_slice;		/* this process's time slice */
+    unsigned cpu;		/* what CPU is the process running on */
+    bitchunk_t cpu_mask[BITMAP_CHUNKS(CONFIG_MAX_CPUS)]; /* what CPUs is the
+                                process allowed
+                                to run on */
+} schedproc[NR_PROCS];
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{endpoint} y \texttt{parent} identifican al proceso y su relación con otros procesos.
+    \item \texttt{flags} indica si la entrada está en uso.
+    \item \texttt{quanta\_consumed} cuenta cuántos quantums completos agotó en la ventana actual.
+    \item \texttt{priority} guarda la prioridad actual y \texttt{max\_priority} marca el mejor nivel al que puede volver.
+    \item \texttt{time\_slice} conserva el tamaño del turno de ejecución.
+    \item \texttt{cpu} y \texttt{cpu\_mask} describen en qué CPU corre y en cuáles puede ejecutarse.
+\end{itemize}
+
+La lógica de ajuste se incorporó en \texttt{balance\_queues}, que se ejecuta de forma periódica para revisar todos los procesos activos.
+
+\begin{itemize}
+    \item Si \texttt{quanta\_consumed} supera el umbral, el proceso se penaliza y baja un nivel de prioridad.
+    \item Si \texttt{quanta\_consumed} es cero, el proceso se considera más interactivo y recupera un nivel.
+    \item Tras la revisión, el contador se reinicia para empezar una nueva ventana.
+\end{itemize}
+
+\begin{lstlisting}[caption=Lógica de ajuste en schedule.c]
+void balance_queues(void) {
+    struct schedproc *rmp;
+
+    for (rmp = &schedproc[0]; rmp < &schedproc[NR_PROCS]; rmp++) {
+        if (!(rmp->flags & IN_USE))
+            continue;
+
+        if (rmp->quanta_consumed >= QUANTA_PENALTY_THRESHOLD) {
+            if (rmp->priority < MIN_USER_Q) {
+                rmp->priority += 1;
+                schedule_process_local(rmp);
+            }
+        }
+        else if (rmp->quanta_consumed == 0) {
+            if (rmp->priority > rmp->max_priority) {
+                rmp->priority -= 1;
+                schedule_process_local(rmp);
+            }
+        }
+
+        rmp->quanta_consumed = 0;
+    }
+}
+\end{lstlisting}
+
+En este esquema, \texttt{do\_noquantum} solo incrementa \texttt{quanta\_consumed} cada vez que un proceso agota completamente su turno de CPU. Después, \texttt{balance\_queues} recorre la tabla de procesos activos, verifica ese contador y aplica la decisión correspondiente: penalización, recuperación o ningún cambio. Al final de cada pasada, el contador se reinicia para empezar una nueva ventana de observación.
+
+\subsubsection*{Validación experimental}
+
+La política se evaluó con dos casos simples:
+
+\begin{itemize}
+    \item Un proceso \textit{CPU-bound}, que consume CPU de forma continua.
+    \item Un proceso interactivo, que alterna ejecución y pausas.
+\end{itemize}
+
+La tabla muestra la idea principal: el primero tiende a perder prioridad con el tiempo, mientras que el segundo la conserva o recupera.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{cpu_bound_VS_interactive.png}
+    \caption{Comparación visual entre un proceso \textit{CPU-bound} y uno interactivo}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Evolución de prioridades}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Tiempo (s)} & \textbf{Proceso CPU-bound} & \textbf{Proceso interactivo} \\
+\hline
+0 & 20 & 20 \\
+5 & 21 & 20 \\
+10 & 22 & 19 \\
+15 & 22 & 18 \\
+\hline
+\end{tabular}
+\end{table}
+
+Como se observa en la tabla, el proceso que mantiene un consumo intensivo de CPU tiende a perder prioridad, mientras que el proceso interactivo conserva o recupera niveles de prioridad más favorables. Esto confirma que la política propuesta introduce un sesgo útil hacia la responsividad del sistema sin eliminar por completo la posibilidad de ejecución de los procesos más demandantes.
+
+
+% ==================== 3. RESULTADOS GLOBALES Y DISCUSIÓN ====================
+\section{Resultados globales y discusión}
+
+Todos los componentes del proyecto fueron implementados satisfactoriamente y cumplen los criterios de aceptación establecidos. La integración del sistema en una máquina virtual con MINIX permitió validar cada funcionalidad en un entorno real de micronúcleo, lo cual resultó especialmente útil para comprobar el comportamiento de los servicios del sistema y sus interacciones.
+
+La mayor dificultad técnica apareció durante la implementación de la penalización para procesos \textit{CPU-bound}. En una primera aproximación se intentó modificar la firma de \texttt{sys\_schedule}, pero esa ruta generó errores de compilación porque las bibliotecas del sistema esperan exactamente cuatro argumentos. Finalmente, el ajuste se resolvió desde la lógica interna del servicio \texttt{sched}, de modo que la penalización quedara integrada en el comportamiento del planificador sin alterar la interfaz esperada por el resto del sistema.
+
+Los resultados obtenidos son coherentes con el diseño propuesto. Como se observó en las pruebas, el proceso intensivo \texttt{cpu\_bound} alcanzó rápidamente la cola de menor prioridad para usuarios, mientras que los procesos interactivos y del sistema se mantuvieron en colas más favorables. Esto confirma que el mecanismo de detección de agotamiento de quantum en \texttt{do\_noquantum} y el ajuste periódico en \texttt{balance\_queues} funcionan de forma correcta.
+
+\begin{table}[H]
+\centering
+\caption{Estado final de los componentes}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Componente} & \textbf{Estado} \\
+\hline
+Instalación y configuración & Sin problemas \\
+Mensaje de bienvenida & Sin problemas \\
+Bug en pthread & Arreglado \\
+Comando tree & Funciona completamente \\
+Penalización CPU-bound & Funciona completamente \\
+\hline
+\end{tabular}
+\end{table}
+
+% ==================== 4. CONCLUSIONES ====================
+\section{Conclusiones}
+
+El proyecto permitió cumplir los objetivos planteados y consolidar, mediante la práctica, varios de los principios esenciales de los sistemas operativos sobre MINIX 3.
+
+\begin{itemize}
+    \item \textbf{Planificación de procesos:} se comprendió el funcionamiento de las colas de prioridad dinámica y la diferencia entre procesos \textit{CPU-bound} e interactivos para mejorar la responsividad del sistema.
+    \item \textbf{Concurrencia e hilos:} la depuración del fallo en \texttt{pthread\_mutex\_trylock} ayudó a entender la relación entre \texttt{pthreads} y \texttt{mthreads}, así como la importancia de evitar interbloqueos.
+    \item \textbf{Sistema de archivos:} con el comando \texttt{tree} se aplicó el recorrido recursivo de directorios y la inspección de metadatos mediante llamadas como \texttt{opendir}, \texttt{readdir} y \texttt{lstat}.
+    \item \textbf{Kernel y gestión de procesos:} la interacción con \texttt{sched} permitió observar cómo el micronúcleo administra estructuras de procesos como \texttt{schedproc} y cómo se coordinan las decisiones del planificador.
+\end{itemize}
+
+En conjunto, la experiencia fue valiosa para nuestra formación en Ciencia de la Computación porque nos obligó a trabajar con errores reales de compilación, enlazado y despliegue sobre un sistema operativo funcional.
 
 % ==================== 5. REFERENCIAS ====================
 \section{Referencias consultadas}

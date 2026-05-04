@@ -1,0 +1,19 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Introducción}{2}{section.1}%
+\contentsline {section}{\numberline {2}Desarrollo y resultados por componente}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Instalación y configuración de VirtualBox y MINIX}{2}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Personalización del mensaje de bienvenida}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Depuración de un bug en pthread}{5}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Implementación del comando tree}{9}{subsection.2.4}%
+\contentsline {paragraph}{1) Inclusiones y firma de la función}{11}{lstlisting.1}%
+\contentsline {paragraph}{2) Función principal (\texttt {main})}{12}{lstlisting.2}%
+\contentsline {paragraph}{3) Apertura y lectura de directorios}{12}{lstlisting.3}%
+\contentsline {paragraph}{4) Filtro de entradas especiales y prevención de ciclos}{12}{lstlisting.4}%
+\contentsline {paragraph}{5) Lógica de recursión e indentación}{13}{lstlisting.5}%
+\contentsline {paragraph}{6) Makefile}{13}{lstlisting.6}%
+\contentsline {subsection}{\numberline {2.5}Penalización por uso intensivo de CPU}{15}{subsection.2.5}%
+\contentsline {section}{\numberline {3}Resultados globales y discusión}{19}{section.3}%
+\contentsline {section}{\numberline {4}Conclusiones}{20}{section.4}%
+\contentsline {section}{\numberline {5}Referencias consultadas}{20}{section.5}%
+\contentsline {section}{\numberline {6}Declaración de uso de IA}{21}{section.6}%
+\contentsline {section}{\numberline {7}Anexos}{21}{section.7}%
