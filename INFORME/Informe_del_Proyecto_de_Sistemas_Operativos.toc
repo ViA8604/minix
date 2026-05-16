@@ -12,8 +12,8 @@
 \contentsline {paragraph}{5) Lógica de recursión e indentación}{13}{lstlisting.5}%
 \contentsline {paragraph}{6) Makefile}{13}{lstlisting.6}%
 \contentsline {subsection}{\numberline {2.5}Penalización por uso intensivo de CPU}{15}{subsection.2.5}%
-\contentsline {section}{\numberline {3}Resultados globales y discusión}{19}{section.3}%
-\contentsline {section}{\numberline {4}Conclusiones}{20}{section.4}%
-\contentsline {section}{\numberline {5}Referencias consultadas}{20}{section.5}%
-\contentsline {section}{\numberline {6}Declaración de uso de IA}{21}{section.6}%
-\contentsline {section}{\numberline {7}Anexos}{21}{section.7}%
+\contentsline {section}{\numberline {3}Resultados globales y discusión}{21}{section.3}%
+\contentsline {section}{\numberline {4}Conclusiones}{22}{section.4}%
+\contentsline {section}{\numberline {5}Referencias consultadas}{22}{section.5}%
+\contentsline {section}{\numberline {6}Declaración de uso de IA}{23}{section.6}%
+\contentsline {section}{\numberline {7}Anexos}{24}{section.7}%

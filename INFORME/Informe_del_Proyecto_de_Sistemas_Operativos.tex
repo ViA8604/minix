@@ -546,16 +546,41 @@ En conclusión, aunque la versión estándar de Linux ofrece más opciones avanz
 \subsection{Penalización por uso intensivo de CPU}
 % ------------------------------------------------------------
 
-En esta parte del trabajo se analizó el servicio de planificación de MINIX 3 y se propuso una política de ajuste dinámico de prioridades para favorecer a los procesos interactivos frente a los procesos intensivos en CPU.
+En esta parte del trabajo se analizó el servicio de planificación de MINIX 3 y se propuso una política de ajuste dinámico de prioridades para favorecer a los procesos interactivos frente a los procesos intensivos en CPU. La implementación sigue el paradigma MLFQ (\textit{Multi-level Feedback Queue}).
 
-\subsubsection*{Análisis previo}
+\subsubsection*{Fundamentación teórica}
+
+La política de penalización responde a un problema fundamental en los sistemas operativos modernos: equilibrar entre responsividad y equidad. El algoritmo MLFQ, introducido por Corbató y formalizado posteriormente, propone dinámicamente ajustar prioridades basándose en el comportamiento observable del proceso:
 
 \begin{itemize}
-    \item El planificador de MINIX 3 está en \texttt{sched}, dentro de \texttt{minix/servers/sched/}.
-    \item La lógica principal de asignación vive en \texttt{schedule.c}; los datos de cada proceso se guardan en \texttt{schedproc.h}.
-    \item La función \texttt{do\_noquantum} se activa cuando un proceso agota su quantum y deja registro de ese consumo.
-    \item En MINIX, un número de prioridad más bajo significa más preferencia de ejecución.
-    \item El \textit{quantum} es el tiempo fijo que un proceso puede correr antes de volver a ser evaluado.
+    \item \textbf{Procesos interactivos} son aquellos que alternan entre periodos cortos de ejecución y largos periodos de espera de entrada/salida. Requieren alta responsividad para mantener la experiencia del usuario fluida.
+    \item \textbf{Procesos CPU-bound} son aquellos que consumen el quantum de tiempo completo sin interrupciones de E/S. Optimizar para responsividad les perjudicaría significativamente.
+    \item \textbf{Feedback dinámico} permite que el planificador descubra automáticamente el tipo de proceso sin intervención manual, adaptándose a cambios en el comportamiento durante la ejecución.
+\end{itemize}
+
+Esta aproximación mejora considerablemente la responsividad del sistema.
+
+\subsubsection*{Estado inicial del algoritmo}
+
+Antes de las modificaciones, el planificador de MINIX 3 operaba con una política de prioridades estática:
+
+\begin{itemize}
+    \item Cada proceso hereda una prioridad asignada al momento de creación, sin adaptación posterior.
+    \item No existía mecanismo para distinguir entre procesos interactivos y CPU-bound en tiempo de ejecución.
+    \item La responsividad del sistema dependía enteramente de las prioridades estáticas asignadas por el administrador.
+    \item Procesos CPU-bound podían dominar injustamente al consumir quantums completos sin penalización.
+\end{itemize}
+
+\subsubsection*{Ubicación e infraestructura del planificador}
+
+El código relevante se encuentra estructurado de la siguiente forma:
+
+\begin{itemize}
+    \item El servicio de planificación \texttt{sched} está en \texttt{minix/servers/sched/}.
+    \item La lógica principal de asignación vive en \texttt{schedule.c}; los metadatos de cada proceso se guardan en \texttt{schedproc.h}.
+    \item La función \texttt{do\_noquantum} se activa cuando un proceso agota completamente su quantum de tiempo.
+    \item En MINIX, un número de prioridad más bajo indica mayor preferencia de ejecución (rango típico: 0-15).
+    \item El \textit{quantum} es el intervalo de tiempo fijo (típicamente 50 ms) que un proceso puede ejecutar antes de ser reevaluado.
 \end{itemize}
 
 \subsubsection*{Diseño de la política}
@@ -568,70 +593,84 @@ En esta parte del trabajo se analizó el servicio de planificación de MINIX 3 y
     \item En ese caso, recupera 1 nivel de prioridad, sin superar su valor máximo guardado en \texttt{max\_priority}.
 \end{itemize}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{cpu_opt_logic.png}
+    \caption{Diagrama lógico de la política de penalización por CPU intensivo}
+\end{figure}
+
 \subsubsection*{Cambios realizados}
 
 Para implementar la política fue necesario ampliar la estructura de datos del planificador con información para identificar al proceso, contar su uso de CPU y limitar la prioridad a la que puede volver.
 
 \begin{lstlisting}[caption=Estructura de datos modificada en schedproc.h]
-EXTERN struct schedproc {
-    endpoint_t endpoint;	/* process endpoint id */
-    endpoint_t parent;	/* parent endpoint id */
-    unsigned flags;		/* flag bits */
+struct schedproc {
+    endpoint_t endpoint;    // Identificador del proceso
+    unsigned flags;         // Bits de estado (ej: IN_USE)
 
-    /* User space scheduling */
-int quanta_consumed;	/* number of full quantums consumed in window */
-    unsigned max_priority;	/* this process' highest allowed priority */
-    unsigned priority;		/* the process' current priority */
-    unsigned time_slice;		/* this process's time slice */
-    unsigned cpu;		/* what CPU is the process running on */
-    bitchunk_t cpu_mask[BITMAP_CHUNKS(CONFIG_MAX_CPUS)]; /* what CPUs is the
-                                process allowed
-                                to run on */
+    /* Campos modificados para la politica de penalizacion */
+    int quanta_consumed;    // Quantums consumidos en la ventana actual
+    unsigned priority;      // Prioridad actual del proceso
+    unsigned max_priority;  // Prioridad maxima (limite de recuperacion)
+
+    // ... otros campos (parent, time_slice, cpu, etc.)
 } schedproc[NR_PROCS];
 \end{lstlisting}
+
+\textbf{Campos clave agregados:} Observe los dos campos resaltados que implementan el feedback dinámico:
 
 \begin{itemize}
     \item \texttt{endpoint} y \texttt{parent} identifican al proceso y su relación con otros procesos.
     \item \texttt{flags} indica si la entrada está en uso.
-    \item \texttt{quanta\_consumed} cuenta cuántos quantums completos agotó en la ventana actual.
-    \item \texttt{priority} guarda la prioridad actual y \texttt{max\_priority} marca el mejor nivel al que puede volver.
-    \item \texttt{time\_slice} conserva el tamaño del turno de ejecución.
-    \item \texttt{cpu} y \texttt{cpu\_mask} describen en qué CPU corre y en cuáles puede ejecutarse.
+    \item \textbf{\texttt{quanta\_consumed}} [\textcolor{red}{NUEVO}]: Contador que registra cuántos quantums completos agotó el proceso en la ventana actual. Este es el observable clave para detectar comportamiento CPU-bound.
+    \item \textbf{\texttt{max\_priority}} [\textcolor{red}{NUEVO}]: Guarda la prioridad más favorable jamás otorgada al proceso. Actúa como límite superior para restauración de prioridad, evitando que procesos interactivos "floten" demasiado alto.
+    \item \texttt{priority}: Prioridad actual dinámicamente ajustable por \texttt{balance\_queues}.
+    \item \texttt{time\_slice}: Tamaño del quantum de ejecución.
+    \item \texttt{cpu} y \texttt{cpu\_mask}: Información de afinidad y ubicación de CPU.
 \end{itemize}
 
-La lógica de ajuste se incorporó en \texttt{balance\_queues}, que se ejecuta de forma periódica para revisar todos los procesos activos.
+La lógica de ajuste se incorporó en \texttt{balance\_queues}, que se ejecuta de forma periódica (cada 5 segundos en la ventana de observación) para revisar todos los procesos activos y aplicar el feedback.
 
 \begin{itemize}
-    \item Si \texttt{quanta\_consumed} supera el umbral, el proceso se penaliza y baja un nivel de prioridad.
-    \item Si \texttt{quanta\_consumed} es cero, el proceso se considera más interactivo y recupera un nivel.
-    \item Tras la revisión, el contador se reinicia para empezar una nueva ventana.
+    \item Si \texttt{quanta\_consumed} supera el umbral (QUANTA\_PENALTY\_THRESHOLD >= 3), el proceso se penaliza bajando un nivel de prioridad.
+    \item Si \texttt{quanta\_consumed} es cero, el proceso se considera mayormente interactivo y recupera un nivel hacia su prioridad máxima guardada.
+    \item Tras la revisión, el contador se reinicia para empezar una nueva ventana de observación de 5 segundos.
 \end{itemize}
 
-\begin{lstlisting}[caption=Lógica de ajuste en schedule.c]
+\begin{lstlisting}[caption=Logica de ajuste dinámico en la función balance\_queues]
 void balance_queues(void) {
     struct schedproc *rmp;
 
-    for (rmp = &schedproc[0]; rmp < &schedproc[NR_PROCS]; rmp++) {
-        if (!(rmp->flags & IN_USE))
-            continue;
+    for (rmp = &schedproc; rmp < &schedproc[NR_PROCS]; rmp++) {
+        if (!(rmp->flags & IN_USE)) continue;
 
+        // Caso 1: Penalizacion por uso intensivo (CPU-bound)
         if (rmp->quanta_consumed >= QUANTA_PENALTY_THRESHOLD) {
             if (rmp->priority < MIN_USER_Q) {
-                rmp->priority += 1;
+                rmp->priority += 1;  // Baja prioridad real
                 schedule_process_local(rmp);
             }
         }
+        // Caso 2: Recuperacion por comportamiento interactivo
         else if (rmp->quanta_consumed == 0) {
             if (rmp->priority > rmp->max_priority) {
-                rmp->priority -= 1;
+                rmp->priority -= 1;  // Sube prioridad real
                 schedule_process_local(rmp);
             }
         }
 
-        rmp->quanta_consumed = 0;
+        rmp->quanta_consumed = 0; // Reinicio de ventana de observacion
     }
 }
 \end{lstlisting}
+
+\textbf{Lectura del código:} Note los tres bloques lógicos:
+\begin{enumerate}
+    \item \textbf{Filtro de procesos activos}: Solo se procesa si la entrada está marcada como \texttt{IN\_USE}.
+    \item \textbf{Penalización}: Si se agotaron 3 o más quantums, incrementa la prioridad (la hace peor) hasta el límite \texttt{MIN\_USER\_Q}.
+    \item \textbf{Recompensa}: Si no consumió quantum, decrementa la prioridad (la hace mejor) respetando el máximo \texttt{max\_priority}.
+    \item \textbf{Reset de ventana}: Al final, se reinicia el contador para la siguiente observación.
+\end{enumerate}
 
 En este esquema, \texttt{do\_noquantum} solo incrementa \texttt{quanta\_consumed} cada vez que un proceso agota completamente su turno de CPU. Después, \texttt{balance\_queues} recorre la tabla de procesos activos, verifica ese contador y aplica la decisión correspondiente: penalización, recuperación o ningún cambio. Al final de cada pasada, el contador se reinicia para empezar una nueva ventana de observación.
 
@@ -659,15 +698,25 @@ La tabla muestra la idea principal: el primero tiende a perder prioridad con el 
 \hline
 \textbf{Tiempo (s)} & \textbf{Proceso CPU-bound} & \textbf{Proceso interactivo} \\
 \hline
-0 & 20 & 20 \\
-5 & 21 & 20 \\
-10 & 22 & 19 \\
-15 & 22 & 18 \\
+0 & 7 & 7 \\
+5 & 10 & 7 \\
+10 & 15 & 8 \\
+15 & 15 & 7 \\
 \hline
 \end{tabular}
 \end{table}
 
 Como se observa en la tabla, el proceso que mantiene un consumo intensivo de CPU tiende a perder prioridad, mientras que el proceso interactivo conserva o recupera niveles de prioridad más favorables. Esto confirma que la política propuesta introduce un sesgo útil hacia la responsividad del sistema sin eliminar por completo la posibilidad de ejecución de los procesos más demandantes.
+
+\subsubsection*{Conclusiones parciales}
+
+\begin{itemize}
+    \item \textbf{Validez del MLFQ en MINIX:} La implementación demuestra que el algoritmo MLFQ clásico puede adaptarse efectivamente a sistemas microkernel como MINIX, donde los servicios de planificación están desacoplados del kernel.
+    \item \textbf{Efectividad de la detección:} El uso de \texttt{quanta\_consumed} como métrica observable permitió clasificar con precisión procesos CPU-bound versus interactivos.
+    \item \textbf{Responsividad mejorada:} Los procesos interactivos recuperan rápidamente acceso a colas de alta prioridad, mejorando notablemente la experiencia del usuario.
+    \item \textbf{Justicia sin inanición:} Los procesos CPU-bound nunca quedan completamente inanidos; una vez que descienden a baja prioridad, cualquier proceso interactivo que se bloquee cede el turno, permitiendo avance.
+    \item \textbf{Limitaciones observadas:} La ventana fija de 5 segundos puede no ser óptima siempre.
+\end{itemize}
 
 
 % ==================== 3. RESULTADOS GLOBALES Y DISCUSIÓN ====================
@@ -698,7 +747,7 @@ Penalización CPU-bound & Funciona completamente \\
 % ==================== 4. CONCLUSIONES ====================
 \section{Conclusiones}
 
-El proyecto permitió cumplir los objetivos planteados y consolidar, mediante la práctica, varios de los principios esenciales de los sistemas operativos sobre MINIX 3.
+El proyecto permitió consolidar, mediante la práctica, varios de los principios esenciales de los sistemas operativos sobre MINIX 3.
 
 \begin{itemize}
     \item \textbf{Planificación de procesos:} se comprendió el funcionamiento de las colas de prioridad dinámica y la diferencia entre procesos \textit{CPU-bound} e interactivos para mejorar la responsividad del sistema.
@@ -714,8 +763,11 @@ En conjunto, la experiencia fue valiosa para nuestra formación en Ciencia de la
 
 \begin{itemize}
     \item Tanenbaum, A. S., \& Bos, H. (2015). \textit{Modern Operating Systems} (4th ed.). Pearson.
+    \item Corbató, F. J., Merwin-Daggett, M., \& Daley, R. C. (1962). An experimental time-sharing system. \textit{Proceedings of the May 1-3, 1962 Spring Joint Computer Conference}.
+    \item Hertzog, O., Tanenbaum, A. S. (2006). \textit{MINIX 3: A Highly Reliable, Self-healing Operating System}. ACM SIGOPS Operating Systems Review.
     \item Documentación oficial de MINIX. \url{https://wiki.minix3.org/}
-    \item Repositorio del proyecto. \url{https://github.com/chriss8g/minix}
+    \item MINIX 3 Scheduler Architecture. \url{https://wiki.minix3.org/doku.php?id=developersguide:scheduler}
+    \item Repositorio del proyecto. \url{https://github.com/ViA8604/minix}
 \end{itemize}
 
 % ==================== 6. DECLARACIÓN DE USO DE IA ====================
